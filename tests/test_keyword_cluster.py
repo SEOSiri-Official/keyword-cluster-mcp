@@ -100,5 +100,5 @@ def test_12_throughput_metrics():
 
 def test_13_server_specifications():
     res = json.loads(get_keyword_server_specifications())
-    assert res["status"] != ""
+    assert res["server"] == "seosiri-keyword-cluster-mcp"
     assert res["total_tools"] == 13
