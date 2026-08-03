@@ -1,0 +1,6 @@
+name = "seosiri-keyword-cluster-mcp"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+[site]
+bucket = "./public"
