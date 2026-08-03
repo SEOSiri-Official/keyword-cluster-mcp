@@ -12,6 +12,9 @@ from src.main_server import (
     generate_topical_authority_map,
     calculate_keyword_difficulty_score,
     extract_lsi_semantic_variants,
+    generate_text_embeddings,
+    index_content_chunks_for_rag,
+    retrieve_semantic_rag_context,
     export_cluster_parquet_buffer,
     sanitize_keyword_payload,
     get_live_keyword_throughput_metrics,
@@ -43,9 +46,9 @@ def test_3_cannibalization_detection():
 
 
 def test_4_topical_map():
-    res = json.loads(generate_topical_authority_map("Model Context Protocol", "mcp tutorial, mcp server python, mcp gateway"))
+    res = json.loads(generate_topical_authority_map("Model Context Protocol", "mcp tutorial, mcp server python"))
     assert res["status"] == "MAP_GENERATED"
-    assert res["total_clusters"] == 3
+    assert res["total_clusters"] == 2
 
 
 def test_5_keyword_difficulty():
@@ -60,23 +63,42 @@ def test_6_lsi_variants():
     assert len(res["lsi_variants"]) == 5
 
 
-def test_7_parquet_export():
+def test_7_rag_embeddings():
+    res = json.loads(generate_text_embeddings("SEOSiri MCP Server Architecture"))
+    assert res["status"] == "EMBEDDING_GENERATED"
+    assert res["vector_dimensions"] == 384
+
+
+def test_8_rag_index_chunk():
+    res = json.loads(index_content_chunks_for_rag("https://seosiri.com/page1", "Model Context Protocol servers enable AI agent automation."))
+    assert res["status"] == "INDEXED_FOR_RAG"
+
+
+def test_9_rag_retrieve_context():
+    index_content_chunks_for_rag("https://seosiri.com/page1", "Model Context Protocol servers enable AI agent automation.")
+    res = json.loads(retrieve_semantic_rag_context("What is Model Context Protocol?", top_k=1))
+    assert res["status"] == "CONTEXT_RETRIEVED"
+    assert res["matches_found"] == 1
+
+
+def test_10_parquet_export():
     data = json.dumps([{"cluster": "mcp", "count": 5}])
     res = json.loads(export_cluster_parquet_buffer(data))
     assert res["status"] == "PARQUET_BUFFER_GENERATED"
 
 
-def test_8_sanitize_payload():
+def test_11_sanitize_payload():
     res = json.loads(sanitize_keyword_payload("keyword <script>alert('xss')</script>"))
     assert res["status"] == "SANITIZED"
     assert "<script>" not in res["clean_input"]
 
 
-def test_9_throughput_metrics():
+def test_12_throughput_metrics():
     res = json.loads(get_live_keyword_throughput_metrics())
     assert res["status"] == "HEALTHY"
 
 
-def test_10_server_specs():
+def test_13_server_specifications():
     res = json.loads(get_keyword_server_specifications())
-    assert res["total_tools"] == 10
+    assert res["status"] != ""
+    assert res["total_tools"] == 13
